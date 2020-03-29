@@ -307,7 +307,7 @@ Where
                        query)))
 
 
-(defn query-template-map [client]
+(defn- query-template-map [client]
   "Returns {<k> <v>, ...} appropriate for <client>
 Where
 <k> and <v> are selmer template parameters which may appear in some query, e.g.
