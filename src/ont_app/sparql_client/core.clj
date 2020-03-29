@@ -307,7 +307,7 @@ Where
                        query)))
 
 
-(defn- query-template-map [client]
+(defn query-template-map [client]
   "Returns {<k> <v>, ...} appropriate for <client>
 Where
 <k> and <v> are selmer template parameters which may appear in some query, e.g.
@@ -541,6 +541,16 @@ Where
 
 (defn quote [s] (str "\"" s "\""))
 
+(defmulti ->xsd class)
+(defmethod ->xsd java.util.Date [t] (let [tt (.format (java.text.SimpleDateFormat. "yyyy-MM-dd'T'hh:mm:ss") t)]
+                                      (format "\"%s\"^^xsd:dateTime" tt)))
+(defmethod ->xsd java.lang.Long [d] (format "\"%d\"^^xsd:decimal" d))
+(defmethod ->xsd clojure.lang.BigInt [d] (format "\"%d\"^^xsd:double" d))
+(defmethod ->xsd java.lang.Double [d] (format "\"%f\"^^xsd:float" d))
+(defmethod ->xsd java.lang.String [s] (format "\"%s\"^^xsd:string" s))
+(defmethod ->xsd java.lang.Boolean [b] (format "\"%s\"^^xsd:boolean" b))
+(defmethod ->xsd :default [d] d)
+
 (defn as-rdf [render-literal triple]
   "Returns a clause of rdf for `triple`, using `render-literal`
 Where
@@ -580,7 +590,7 @@ Where
   (selmer/render add-update-template
                  (merge (query-template-map client)
                         {:triples (s/join "\n"
-                                          (map (partial as-rdf quote)
+                                          (map (partial as-rdf ->xsd)
                                                triples))
                          })))
 
